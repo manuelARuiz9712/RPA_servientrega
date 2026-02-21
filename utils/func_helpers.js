@@ -103,3 +103,54 @@ export function leftSimilarity(a, b) {
 
   return (matches / Math.max(a.length, b.length)) * 100;
 }
+
+
+
+
+function leftPrefixSimilarity(a, b) {
+  const minLen = Math.min(a.length, b.length);
+  let matches = 0;
+  for (let i = 0; i < minLen; i++) {
+    if (a[i] === b[i]) matches++;
+    else break;
+  }
+  return (matches / Math.max(a.length, b.length)) * 100;
+}
+
+export function bestOptionByGrowingPrefixes(options, cleanedQuestionText, { minPrefix = 2 } = {}) {
+  const target = norm(cleanedQuestionText);
+  if (!target) return { best: null, scored: [] };
+
+  // prefijos: [0,2], [0,3], ... [0,target.length]
+  const prefixes = [];
+  for (let len = Math.max(minPrefix, 1); len <= target.length; len++) {
+    prefixes.push(target.slice(0, len));
+  }
+
+  const scored = options.map(op => {
+    const w = norm(op.img_name);
+
+    let bestScore = 0;
+    let matchedPrefix = "";
+
+    for (const p of prefixes) {
+      let score = 0;
+
+      if (!w) score = 0;
+      else if (w === target) score = 100;
+      else if (w.startsWith(p) || p.startsWith(w)) score = 95; // match fuerte por prefijo
+      else score = leftPrefixSimilarity(w, p); // fallback
+
+      if (score > bestScore) {
+        bestScore = score;
+        matchedPrefix = p;
+        if (bestScore >= 95) break; // suficiente
+      }
+    }
+
+    return { ...op, score: Number(bestScore.toFixed(2)), matchedPrefix };
+  });
+
+  scored.sort((a, b) => b.score - a.score);
+  return { best: scored[0], scored };
+}

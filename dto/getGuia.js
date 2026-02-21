@@ -1,5 +1,5 @@
 import * as puppeteer from "puppeteer";
-import {similarity,leftSimilarity,scoreMatch} from "../utils/func_helpers.js";
+import {similarity,leftSimilarity,scoreMatch, bestOptionByGrowingPrefixes} from "../utils/func_helpers.js";
 
 export const  getGuia = async(browser,guia_id)=>{
     console.log("get guia");
@@ -33,7 +33,13 @@ export const  getGuia = async(browser,guia_id)=>{
     })
     );
     console.log({options,textQuestion})
-    const option_to_select = options.map(op=>({
+    const { best, scored } = bestOptionByGrowingPrefixes(options, textQuestion);
+
+    console.log({ best, scored });
+
+    await page.waitForSelector(`#${best.element}`, { visible: true });
+    await page.click(`#${best.element}`);
+/*     const option_to_select = options.map(op=>({
         ...op,
         score:scoreMatch(op.img_name,textQuestion)
     })).sort( (a,b)=>{
@@ -41,11 +47,13 @@ export const  getGuia = async(browser,guia_id)=>{
     } )[0]
     console.log("option",option_to_select)
     await page.waitForSelector(`#${option_to_select.element}`, { visible: true });
-    await page.click(`#${option_to_select.element}`);
+    await page.click(`#${option_to_select.element}`); */
     await page.waitForSelector("#btnAceptar")
     //await page.click("#btnAceptar")
-    await page.click("#btnAceptar");
-    await page.waitForSelector("iframe#MenuFrame", { visible: true, timeout: 120000 });
+    await Promise.all([
+        page.waitForNavigation({ waitUntil: 'domcontentloaded' }),
+        page.click('#btnAceptar')
+        ]);
     await page.waitForSelector('iframe#MenuFrame', { visible: true });
     const handleMenuFrame = await page.$('iframe#MenuFrame');
     const menuFrame = await handleMenuFrame.contentFrame();

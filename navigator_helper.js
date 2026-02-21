@@ -20,10 +20,10 @@ export class NavigatorHelper {
             args: [
                 "--no-sandbox",
                 "--disable-setuid-sandbox",
-                "--disable-dev-shm-usage",
+/*                 "--disable-dev-shm-usage",
                 "--disable-gpu",
                 "--no-zygote",
-                "--single-process"
+                "--single-process" */
             ]
         })
     }
@@ -90,7 +90,7 @@ export class NavigatorHelper {
                     resolve({
                         pid,
                         response:null,
-                        msg:"tiempo de espera maximo superado"
+                        msg:"TIMEOUT_ERR"
                     });
                     return;
                 }
