@@ -7,9 +7,11 @@ export const  getGuia = async(browser,guia_id)=>{
     const page = await browser.newPage();
 
   try {
-    page.setDefaultTimeout(30000);
 
-    await page.goto("https://apps.servientrega.com/SismilenioNET/Ingreso.aspx", { waitUntil: "networkidle2" });    
+    page.setDefaultTimeout(120000);              // waits de selectors, etc.
+    page.setDefaultNavigationTimeout(120000);    // goto / waitForNavigation
+
+    await page.goto("https://apps.servientrega.com/SismilenioNET/Ingreso.aspx", { waitUntil: "domcontentloaded" });    
 
     await page.waitForSelector('#txtUsuario', { visible: true });
     await page.waitForSelector('#txtClave', { visible: true });
@@ -42,10 +44,8 @@ export const  getGuia = async(browser,guia_id)=>{
     await page.click(`#${option_to_select.element}`);
     await page.waitForSelector("#btnAceptar")
     //await page.click("#btnAceptar")
-    await Promise.all([
-        page.waitForNavigation({ waitUntil: 'networkidle2' }),
-        page.click('#btnAceptar')
-        ]);
+    await page.click("#btnAceptar");
+    await page.waitForSelector("iframe#MenuFrame", { visible: true, timeout: 120000 });
     await page.waitForSelector('iframe#MenuFrame', { visible: true });
     const handleMenuFrame = await page.$('iframe#MenuFrame');
     const menuFrame = await handleMenuFrame.contentFrame();
