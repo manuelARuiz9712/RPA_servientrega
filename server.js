@@ -1,30 +1,39 @@
-//import "dotenv/config";
 import express from "express";
-import {NavigatorHelper} from "./navigator_helper.js";
-import {AppController} from "./app.controller.js";
+import { NavigatorHelper } from "./navigator_helper.js";
+import { AppController } from "./app.controller.js";
 
-const app = express()
- let navInstance = new NavigatorHelper()
-await navInstance.InitNavigator();
-navInstance.StartWorkers();
-const appController = new AppController()
+const app = express();
+const port = Number(process.env.PORT) || 8080;
 
-app.use(async(req,res,next)=>{
-if ( !req.browserInstance ){
-    console.log("instace created");
-    req.NavigatorHelper =  navInstance;
-   
-}
+const appController = new AppController();
+
+let navInstance  = new NavigatorHelper();
+
+// health + root rápidos (para que el startup probe pase)
+app.get("/", (req, res) => res.send("RPA SERVIENTREGA"));
+app.get("/healthz", (req, res) => res.status(200).send("ok"));
+
+app.use((req, res, next) => {
+  req.NavigatorHelper = navInstance; // puede ser null al inicio
   next();
 });
 
-app.get('/', (req, res) => {
-  res.send('RPA SERVIENTREGA');
-})
+app.get("/get-guia-data/:guia_id", appController.ObtnerDatosGuia);
 
+app.listen(port, "0.0.0.0", () => {
+  console.log(`Listening on ${port}`);
 
-app.get('/get-guia-data/:guia_id',appController.ObtnerDatosGuia)
-
-app.listen(process.env.PORT || 8000,"0.0.0.0", () => {
-  console.log(`Example app listening on port ${process.env.PORT || 8000}`)
-})
+  // Inicializa el navegador DESPUÉS de escuchar el puerto
+  (async () => {
+    try {
+      
+      await navInstance.InitNavigator();
+      navInstance.StartWorkers();
+      console.log("Navigator ready");
+    } catch (err) {
+      console.error("Navigator init failed:", err);
+      // decide si quieres matar el proceso o seguir sirviendo endpoints básicos
+      // process.exit(1);
+    }
+  })();
+});
