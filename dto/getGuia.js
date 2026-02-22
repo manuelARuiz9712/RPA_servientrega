@@ -5,13 +5,26 @@ export const  getGuia = async(browser,guia_id)=>{
     console.log("get guia");
     console.log(browser)
     const page = await browser.newPage();
-
+    const url = "https://apps.servientrega.com/SismilenioNET/Ingreso.aspx";
   try {
 
     page.setDefaultTimeout(120000);              // waits de selectors, etc.
     page.setDefaultNavigationTimeout(120000);    // goto / waitForNavigation
+    const r = await fetch(url, {
+    redirect: "follow",
+    });
+    console.log("FETCH STATUS:", r.status);
+    const t = await r.text();
+    console.log("FETCH HEAD:", t.slice(0, 300));
+    await page.goto(url, { waitUntil: "domcontentloaded" });
+    page.on("requestfailed", req =>
+  console.log("REQ FAILED:", req.url(), req.failure()?.errorText)
+);
 
-    await page.goto("https://apps.servientrega.com/SismilenioNET/Ingreso.aspx", { waitUntil: "domcontentloaded" });    
+const resp = await page.goto(url, { waitUntil: "domcontentloaded", timeout: 60000 });
+console.log("GOTO STATUS:", resp?.status());
+console.log("FINAL URL:", page.url());
+console.log("TITLE:", await page.title());    
 
     await page.waitForSelector('#txtUsuario', { visible: true });
     await page.waitForSelector('#txtClave', { visible: true });
