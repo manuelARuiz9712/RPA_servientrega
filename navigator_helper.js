@@ -12,9 +12,19 @@ export class NavigatorHelper {
     async InitNavigator() {
         console.log("launched navigator");
         this.navigatorInstance = await puppeteer.launch({
-               headless: false, // 👈 IMPORTANTE
-    defaultViewport: null, // opcional (abre maximizado)
-    args: ['--start-maximized'] // opcional
+            dumpio: true,
+            timeout: 120000,
+            //headless: false, // en Windows, para depurar es mejor verlo
+            // defaultViewport: { width: 1366, height: 768 },
+            headless: "new",
+            args: [
+                "--no-sandbox",
+                "--disable-setuid-sandbox",
+/*                 "--disable-dev-shm-usage",
+                "--disable-gpu",
+                "--no-zygote",
+                "--single-process" */
+            ]
         })
     }
 
