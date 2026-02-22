@@ -4,7 +4,8 @@ import {similarity,leftSimilarity,scoreMatch,bestOptionByGrowingPrefixes} from "
 export const  getGuia = async(browser,guia_id)=>{
     console.log("get guia");
     console.log(browser)
-    const page = await browser.newPage();
+    const context = await browser.createBrowserContext(); // aislado
+    const page = await context.newPage();
 
   try {
     page.setDefaultTimeout(60000);
@@ -57,8 +58,8 @@ export const  getGuia = async(browser,guia_id)=>{
     });
 
     await page.waitForSelector('iframe#ContentFrame', { visible: true });
-    const handleContenFrame = await page.$('iframe#ContentFrame');
-    const contentFrame = await handleContenFrame.contentFrame();
+    let handleContenFrame = await page.$('iframe#ContentFrame');
+    let contentFrame = await handleContenFrame.contentFrame();
     await contentFrame.waitForSelector('#Menu1_btnRastreo', { visible: true });
     await contentFrame.click('#Menu1_btnRastreo');
     await contentFrame.waitForSelector('#txtGuia', { visible: true });
@@ -96,19 +97,33 @@ export const  getGuia = async(browser,guia_id)=>{
         // aquí decides: reintentar, cambiar guía, registrar error, etc.
     }
     } else {
+        await page.waitForSelector('iframe#ContentFrame', { visible: true });
+        handleContenFrame = await page.$('iframe#ContentFrame');
+        contentFrame = await handleContenFrame.contentFrame();
+        
         await contentFrame.waitForSelector('#tblEncabezadoGuiaExtra #LBLFECHAENVIOExtra', { visible: true });
+        const FECHA_ENVIO = await contentFrame.$eval('#tblEncabezadoGuiaExtra #LBLFECHAENVIOExtra', el => el.textContent.trim());
+        
         await contentFrame.waitForSelector('#tblEncabezadoGuiaExtra #LBLORIGENExtra', { visible: true });
+        const ORIGEN = await contentFrame.$eval('#tblEncabezadoGuiaExtra #LBLORIGENExtra', el => el.textContent.trim());
+        
         await contentFrame.waitForSelector('#tblEncabezadoGuiaExtra #LBLDESTINOExtra', { visible: true });
+        const DESTINO = await contentFrame.$eval('#tblEncabezadoGuiaExtra #LBLDESTINOExtra', el => el.textContent.trim());
+       
         await contentFrame.waitForSelector('#tblEncabezadoGuiaExtra #LBLESTADOACTUALExtra', { visible: true });
-        await contentFrame.waitForSelector('#tblEncabezadoGuiaExtra #LBLRECIBIOExtra', { visible: true });
+        const ESTADO_ACTUAL = await contentFrame.$eval('#tblEncabezadoGuiaExtra #LBLESTADOACTUALExtra', el => el.textContent.trim());
+
+  
+        let PERSONA_RECIBE = '';
+        if (ESTADO_ACTUAL === 'ENTREGADO') {
+            await contentFrame.waitForSelector('#tblEncabezadoGuiaExtra #LBLRECIBIOExtra', { visible: true });
+            PERSONA_RECIBE = await contentFrame.$eval('#tblEncabezadoGuiaExtra #LBLRECIBIOExtra', el => el.textContent.trim());
+
+        }
+       
         await contentFrame.waitForSelector('#dgMovimientos', { visible: true });
         
-        const FECHA_ENVIO = await contentFrame.$eval('#tblEncabezadoGuiaExtra #LBLFECHAENVIOExtra', el => el.textContent.trim());
-        const ORIGEN = await contentFrame.$eval('#tblEncabezadoGuiaExtra #LBLORIGENExtra', el => el.textContent.trim());
-        const DESTINO = await contentFrame.$eval('#tblEncabezadoGuiaExtra #LBLDESTINOExtra', el => el.textContent.trim());
-        const ESTADO_ACTUAL = await contentFrame.$eval('#tblEncabezadoGuiaExtra #LBLESTADOACTUALExtra', el => el.textContent.trim());
-        const PERSONA_RECIBE = await contentFrame.$eval('#tblEncabezadoGuiaExtra #LBLRECIBIOExtra', el => el.textContent.trim());
-
+        
 
         const rows = await contentFrame.$$eval('#dgMovimientos tr.tdResultadosPar, #dgMovimientos tr.tdResultadosImpar', trs =>
         trs.map(tr => {
@@ -155,7 +170,7 @@ export const  getGuia = async(browser,guia_id)=>{
     }
     
   } finally {
-    //if (page) await page.close();
+    if (context) await context.close();
     
   }
 

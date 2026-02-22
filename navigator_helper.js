@@ -14,7 +14,7 @@ export class NavigatorHelper {
         console.log("launched navigator");
 
         //OCULTO
-        /* this.navigatorInstance = await puppeteer.launch({
+        this.navigatorInstance = await puppeteer.launch({
             headless: "new",
             args: [
                 "--no-sandbox",
@@ -22,15 +22,15 @@ export class NavigatorHelper {
                 "--disable-dev-shm-usage"
 
             ]
-        })  */
+        }) 
 
 
         //pantalla 
-        this.navigatorInstance = await puppeteer.launch({
+        /* this.navigatorInstance = await puppeteer.launch({
             headless: false, // 👈 IMPORTANTE
             defaultViewport: null, // opcional (abre maximizado)
             args: ['--start-maximized'] // opcional
-        })
+        }) */
         this.is_instanced = true
     }
 
