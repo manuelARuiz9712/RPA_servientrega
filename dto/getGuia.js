@@ -1,34 +1,16 @@
 import * as puppeteer from "puppeteer";
-import {similarity,leftSimilarity,scoreMatch, bestOptionByGrowingPrefixes} from "../utils/func_helpers.js";
+import {similarity,leftSimilarity,scoreMatch,bestOptionByGrowingPrefixes} from "../utils/func_helpers.js";
 
 export const  getGuia = async(browser,guia_id)=>{
     console.log("get guia");
     console.log(browser)
     const page = await browser.newPage();
-    const url = "https://apps.servientrega.com/SismilenioNET/Ingreso.aspx";
+
   try {
+    page.setDefaultTimeout(60000);
+    
 
-    page.setDefaultTimeout(120000);              // waits de selectors, etc.
-    page.setDefaultNavigationTimeout(120000);    // goto / waitForNavigation
-    try {
-  const r = await fetch("https://apps.servientrega.com/SismilenioNET/Ingreso.aspx", { redirect: "follow" });
-  console.log("STATUS:", r.status);
-  const t = await r.text();
-  console.log("HEAD:", t.slice(0, 200));
-} catch (e) {
-  console.log("FETCH ERROR:", e?.name, e?.message);
-  console.log("CAUSE:", e?.cause);          // <- aquí suele decir ENOTFOUND, ECONNRESET, ETIMEDOUT, etc
-  console.log("STACK:", e?.stack);
-}
-    await page.goto(url, { waitUntil: "domcontentloaded" });
-    page.on("requestfailed", req =>
-  console.log("REQ FAILED:", req.url(), req.failure()?.errorText)
-);
-
-const resp = await page.goto(url, { waitUntil: "domcontentloaded", timeout: 60000 });
-console.log("GOTO STATUS:", resp?.status());
-console.log("FINAL URL:", page.url());
-console.log("TITLE:", await page.title());    
+    await page.goto("https://apps.servientrega.com/SismilenioNET/Ingreso.aspx", { waitUntil: "networkidle2" });    
 
     await page.waitForSelector('#txtUsuario', { visible: true });
     await page.waitForSelector('#txtClave', { visible: true });
@@ -37,7 +19,7 @@ console.log("TITLE:", await page.title());
     await page.waitForSelector('#td_captcha', { visible: true });
     await page.waitForSelector('#td_captcha p', { visible: true });
     let textQuestion =  await page.$eval('#td_captcha p', el => el.textContent.trim());
-    textQuestion = textQuestion.replace("Seleccione el","")
+    textQuestion = textQuestion.replace("Seleccione el","").replace("Seleccione la","").replace("Seleccione los","").replace("Seleccione las","")
     let options = await page.$$eval('#td_captcha img', imgs =>
     imgs.map(img => {
         const img_name = img.src.split("/").at(-1).replace("icon","").split(".").at(0)
@@ -50,25 +32,18 @@ console.log("TITLE:", await page.title());
     })
     );
     console.log({options,textQuestion})
-    const { best, scored } = bestOptionByGrowingPrefixes(options, textQuestion);
 
-    console.log({ best, scored });
-
+    const {scored,best} = bestOptionByGrowingPrefixes(options,textQuestion)
+    console.log("scored",{
+        scored,
+        best
+    })
     await page.waitForSelector(`#${best.element}`, { visible: true });
     await page.click(`#${best.element}`);
-/*     const option_to_select = options.map(op=>({
-        ...op,
-        score:scoreMatch(op.img_name,textQuestion)
-    })).sort( (a,b)=>{
-        return  b.score - a.score
-    } )[0]
-    console.log("option",option_to_select)
-    await page.waitForSelector(`#${option_to_select.element}`, { visible: true });
-    await page.click(`#${option_to_select.element}`); */
     await page.waitForSelector("#btnAceptar")
     //await page.click("#btnAceptar")
     await Promise.all([
-        page.waitForNavigation({ waitUntil: 'domcontentloaded' }),
+        page.waitForNavigation({ waitUntil: 'networkidle2' }),
         page.click('#btnAceptar')
         ]);
     await page.waitForSelector('iframe#MenuFrame', { visible: true });
@@ -101,7 +76,7 @@ console.log("TITLE:", await page.title());
     dialogPromise,
     new Promise(resolve => setTimeout(() => resolve(null), 3000))
     ]);
-
+    console.log("not dialog");
     if (dialog) {
     const msg = dialog.message();
     await dialog.accept();
@@ -180,7 +155,7 @@ console.log("TITLE:", await page.title());
     }
     
   } finally {
-    if (page) await page.close();
+    //if (page) await page.close();
     
   }
 

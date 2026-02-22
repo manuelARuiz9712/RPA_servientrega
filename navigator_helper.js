@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 export class NavigatorHelper {
    max_limit_windows = 5
-   max_time_wait_limit = 60
+   max_time_wait_limit = 120
    workers_started = false;
    cola_espera = []
    resolved_result = new Map();
@@ -12,20 +12,24 @@ export class NavigatorHelper {
     constructor(){}
     async InitNavigator() {
         console.log("launched navigator");
-        this.navigatorInstance = await puppeteer.launch({
-            dumpio: true,
-            timeout: 120000,
-            //headless: false, // en Windows, para depurar es mejor verlo
-            // defaultViewport: { width: 1366, height: 768 },
+
+        //OCULTO
+        /* this.navigatorInstance = await puppeteer.launch({
             headless: "new",
             args: [
                 "--no-sandbox",
                 "--disable-setuid-sandbox",
-/*                 "--disable-dev-shm-usage",
-                "--disable-gpu",
-                "--no-zygote",
-                "--single-process" */
+                "--disable-dev-shm-usage"
+
             ]
+        })  */
+
+
+        //pantalla 
+        this.navigatorInstance = await puppeteer.launch({
+            headless: false, // 👈 IMPORTANTE
+            defaultViewport: null, // opcional (abre maximizado)
+            args: ['--start-maximized'] // opcional
         })
         this.is_instanced = true
     }
