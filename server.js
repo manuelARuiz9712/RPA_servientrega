@@ -13,7 +13,14 @@ let navInstance  = new NavigatorHelper();
 app.get("/", (req, res) => res.send("RPA SERVIENTREGA"));
 app.get("/healthz", (req, res) => res.status(200).send("ok"));
 
-app.use((req, res, next) => {
+app.use(async(req, res, next) => {
+if ( !navInstance.is_instanced  ){
+
+    await navInstance.InitNavigator();
+    navInstance.StartWorkers();
+    console.log("Navigator ready");
+
+}
   req.NavigatorHelper = navInstance; // puede ser null al inicio
   next();
 });

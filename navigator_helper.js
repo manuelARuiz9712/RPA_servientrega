@@ -6,8 +6,9 @@ export class NavigatorHelper {
    max_time_wait_limit = 60
    workers_started = false;
    cola_espera = []
-   resolved_result = new Map()
-   expired = new Set()
+   resolved_result = new Map();
+   expired = new Set();
+   is_instanced = false
     constructor(){}
     async InitNavigator() {
         console.log("launched navigator");
@@ -26,6 +27,7 @@ export class NavigatorHelper {
                 "--single-process" */
             ]
         })
+        this.is_instanced = true
     }
 
     async ResolvedRequest(workerId) {
