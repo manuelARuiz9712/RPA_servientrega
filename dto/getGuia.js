@@ -10,12 +10,16 @@ export const  getGuia = async(browser,guia_id)=>{
 
     page.setDefaultTimeout(120000);              // waits de selectors, etc.
     page.setDefaultNavigationTimeout(120000);    // goto / waitForNavigation
-    const r = await fetch(url, {
-    redirect: "follow",
-    });
-    console.log("FETCH STATUS:", r.status);
-    const t = await r.text();
-    console.log("FETCH HEAD:", t.slice(0, 300));
+    try {
+  const r = await fetch("https://apps.servientrega.com/SismilenioNET/Ingreso.aspx", { redirect: "follow" });
+  console.log("STATUS:", r.status);
+  const t = await r.text();
+  console.log("HEAD:", t.slice(0, 200));
+} catch (e) {
+  console.log("FETCH ERROR:", e?.name, e?.message);
+  console.log("CAUSE:", e?.cause);          // <- aquí suele decir ENOTFOUND, ECONNRESET, ETIMEDOUT, etc
+  console.log("STACK:", e?.stack);
+}
     await page.goto(url, { waitUntil: "domcontentloaded" });
     page.on("requestfailed", req =>
   console.log("REQ FAILED:", req.url(), req.failure()?.errorText)
