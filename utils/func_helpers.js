@@ -1,4 +1,5 @@
 
+export const AppServientregaUri = "https://apps.servientrega.com/SismilenioNET/Ingreso.aspx";
 
 export function similarity(a, b) {
   // Normalizar: quitar espacios y convertir a minúsculas

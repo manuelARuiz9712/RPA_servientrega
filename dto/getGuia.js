@@ -1,55 +1,24 @@
 import * as puppeteer from "puppeteer";
-import {similarity,leftSimilarity,scoreMatch,bestOptionByGrowingPrefixes} from "../utils/func_helpers.js";
+import {similarity,leftSimilarity,scoreMatch,bestOptionByGrowingPrefixes, AppServientregaUri} from "../utils/func_helpers.js";
 
-export const  getGuia = async(browser,guia_id,worker_user,worker_pass)=>{
-    console.log("get guia");
-    console.log(browser)
-    const context = await browser.createBrowserContext(); // aislado
-    const page = await context.newPage();
-
+export const  getGuia = async(browserContext,guia_id)=>{
+    console.log({browserContext});
+    const page = await browserContext.newPage();
+   
   try {
+
     page.setDefaultTimeout(60000);
+    await page.goto(AppServientregaUri, { waitUntil: "networkidle2" });
+    // Detectar si nos redirigió al login
+    const isLogin = await page.$("#txtUsuario");
+    if (isLogin) {
+        throw new Error("SESSION_EXPIRED");
+    }
     
-
-    await page.goto("https://apps.servientrega.com/SismilenioNET/Ingreso.aspx", { waitUntil: "networkidle2" });    
-
-    await page.waitForSelector('#txtUsuario', { visible: true });
-    await page.waitForSelector('#txtClave', { visible: true });
-    await page.type('#txtUsuario',worker_user, { delay: 50 });
-    await page.type('#txtClave',worker_pass, { delay: 50 });
-    await page.waitForSelector('#td_captcha', { visible: true });
-    await page.waitForSelector('#td_captcha p', { visible: true });
-    let textQuestion =  await page.$eval('#td_captcha p', el => el.textContent.trim());
-    textQuestion = textQuestion.replace("Seleccione el","").replace("Seleccione la","").replace("Seleccione los","").replace("Seleccione las","")
-    let options = await page.$$eval('#td_captcha img', imgs =>
-    imgs.map(img => {
-        const img_name = img.src.split("/").at(-1).replace("icon","").split(".").at(0)
-        
-        return {
-            img_name:img_name,
-            element:img.parentElement.parentElement.getAttribute("id"),
-            score:0
-        }
-    })
-    );
-    console.log({options,textQuestion})
-
-    const {scored,best} = bestOptionByGrowingPrefixes(options,textQuestion)
-    console.log("scored",{
-        scored,
-        best
-    })
-    await page.waitForSelector(`#${best.element}`, { visible: true });
-    await page.click(`#${best.element}`);
-    await page.waitForSelector("#btnAceptar")
-    //await page.click("#btnAceptar")
-    await Promise.all([
-        page.waitForNavigation({ waitUntil: 'networkidle2' }),
-        page.click('#btnAceptar')
-        ]);
-    await page.waitForSelector('iframe#MenuFrame', { visible: true });
     const handleMenuFrame = await page.$('iframe#MenuFrame');
+    if (!handleMenuFrame) throw new Error("MENUFRAME_NOT_FOUND");
     const menuFrame = await handleMenuFrame.contentFrame();
+    if (!menuFrame) throw new Error("MENUFRAME_NOT_READY");
     await menuFrame.waitForSelector('#treeViewMenu', { visible: true });
     await menuFrame.evaluate(() => {
         const el = Array.from(document.querySelectorAll('#treeViewMenu a'))
@@ -141,7 +110,7 @@ export const  getGuia = async(browser,guia_id,worker_user,worker_pass)=>{
             };
         })
 );
-if (context) await context.close();
+if (page) await page.close();
     return {
             "status":"OK",
             "msg_errr":"",
@@ -171,7 +140,7 @@ if (context) await context.close();
     }
     
   } finally {
-    //if (context) await context.close();
+    if (page) await page.close();
     
   }
 
