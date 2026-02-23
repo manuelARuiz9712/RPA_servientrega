@@ -171,7 +171,7 @@ if (context) await context.close();
     }
     
   } finally {
-    //if (context) await context.close();
+    if (context) await context.close();
     
   }
 
