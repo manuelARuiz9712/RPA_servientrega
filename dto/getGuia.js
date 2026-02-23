@@ -1,7 +1,7 @@
 import * as puppeteer from "puppeteer";
 import {similarity,leftSimilarity,scoreMatch,bestOptionByGrowingPrefixes} from "../utils/func_helpers.js";
 
-export const  getGuia = async(browser,guia_id)=>{
+export const  getGuia = async(browser,guia_id,worker_user,worker_pass)=>{
     console.log("get guia");
     console.log(browser)
     const context = await browser.createBrowserContext(); // aislado
@@ -15,8 +15,8 @@ export const  getGuia = async(browser,guia_id)=>{
 
     await page.waitForSelector('#txtUsuario', { visible: true });
     await page.waitForSelector('#txtClave', { visible: true });
-    await page.type('#txtUsuario',"MARTILCU", { delay: 50 });
-    await page.type('#txtClave',"Servi2025*", { delay: 50 });
+    await page.type('#txtUsuario',worker_user, { delay: 50 });
+    await page.type('#txtClave',worker_pass, { delay: 50 });
     await page.waitForSelector('#td_captcha', { visible: true });
     await page.waitForSelector('#td_captcha p', { visible: true });
     let textQuestion =  await page.$eval('#td_captcha p', el => el.textContent.trim());
@@ -141,6 +141,7 @@ export const  getGuia = async(browser,guia_id)=>{
             };
         })
 );
+if (context) await context.close();
     return {
             "status":"OK",
             "msg_errr":"",
@@ -155,7 +156,7 @@ export const  getGuia = async(browser,guia_id)=>{
     }
 
 
-
+    
   } catch (e) {
     console.log(`ERROR : ${e.stack || e.message}`);
         return {
@@ -170,7 +171,7 @@ export const  getGuia = async(browser,guia_id)=>{
     }
     
   } finally {
-    if (context) await context.close();
+    //if (context) await context.close();
     
   }
 

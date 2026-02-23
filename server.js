@@ -1,7 +1,7 @@
 import express from "express";
 import { NavigatorHelper } from "./navigator_helper.js";
 import { AppController } from "./app.controller.js";
-
+import cors from "express";
 const app = express();
 const port = Number(process.env.PORT) || 8080;
 
@@ -10,6 +10,7 @@ const appController = new AppController();
 let navInstance  = new NavigatorHelper();
 
 // health + root rápidos (para que el startup probe pase)
+app.use(cors())
 app.get("/", (req, res) => res.send("RPA SERVIENTREGA"));
 app.get("/healthz", (req, res) => res.status(200).send("ok"));
 

@@ -2,8 +2,11 @@ import * as puppeteer from "puppeteer";
 import { v4 as uuidv4 } from 'uuid';
 
 export class NavigatorHelper {
-   max_limit_windows = 5
-   max_time_wait_limit = 120
+   agentes_list =  [{
+    user:"MARTILCU",
+    pass:"Servi2025*"
+   }]
+   max_time_wait_limit = 200
    workers_started = false;
    cola_espera = []
    resolved_result = new Map();
@@ -14,7 +17,7 @@ export class NavigatorHelper {
         console.log("launched navigator");
 
         //OCULTO
-        this.navigatorInstance = await puppeteer.launch({
+       /*  this.navigatorInstance = await puppeteer.launch({
             headless: "new",
             args: [
                 "--no-sandbox",
@@ -22,15 +25,15 @@ export class NavigatorHelper {
                 "--disable-dev-shm-usage"
 
             ]
-        }) 
+        })  */
 
 
         //pantalla 
-        /* this.navigatorInstance = await puppeteer.launch({
+        this.navigatorInstance = await puppeteer.launch({
             headless: false, // 👈 IMPORTANTE
             defaultViewport: null, // opcional (abre maximizado)
             args: ['--start-maximized'] // opcional
-        }) */
+        })
         this.is_instanced = true
     }
 
@@ -40,7 +43,7 @@ export class NavigatorHelper {
 
         if (processToRun) {
             try {
-                const response = await processToRun.func_instance(...processToRun.params);
+                const response = await processToRun.func_instance(...[...processToRun.params,workerId.user,workerId.pass]);
                 console.log({response});
                 if (this.expired.has( processToRun.pid )) {
                     this.expired.delete( processToRun.pid );
@@ -73,10 +76,9 @@ export class NavigatorHelper {
     StartWorkers(n = this.max_limit_windows) {
         if (this.workers_started) return;
         this.workers_started = true;
-
-        for (let i = 0; i < n; i++) {
-            this.ResolvedRequest(i);
-        }
+        this.agentes_list.forEach( agente=>{
+            this.ResolvedRequest(agente)
+        } )
     }
     
      RunRequest(func_instance,params){
@@ -109,7 +111,7 @@ export class NavigatorHelper {
                     resolve({
                         pid,
                         response:responseResolved.response,
-                        msg:"resuelto"
+                        msg:"RESUELTO"
                     })
                   
                    
