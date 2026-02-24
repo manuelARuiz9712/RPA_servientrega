@@ -24,7 +24,7 @@ let run_params = {
         is_mock:false,
         value:"2178767341"
     }],
-    mocks:true,
+    mocks:false,
     
 }
 
@@ -72,7 +72,7 @@ await Promise.all( run_params.values.map( async (item,item_index)=>{
             }
             
         }else{
-
+            const end_time = Date.now();
             const durationSeconds = (end_time - start_time) / 1000; //segundos
             result_set.push({
                         res_status:status_data.TIMEOUT_SERVICE,
@@ -87,7 +87,7 @@ await Promise.all( run_params.values.map( async (item,item_index)=>{
        
 
      }catch(e){
-
+            const end_time = Date.now();
             const durationSeconds = (end_time - start_time) / 1000; //segundos
             result_set.push({
                         res_status:status_data.ERROR_QUERY_API,

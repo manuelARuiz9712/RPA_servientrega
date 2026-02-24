@@ -141,7 +141,7 @@ export const  getGuia = async(browser,guia_id,worker_user,worker_pass)=>{
             };
         })
 );
-if (context) await context.close();
+
     return {
             "status":"OK",
             "msg_errr":"",
